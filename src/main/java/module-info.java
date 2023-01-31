@@ -1,4 +1,4 @@
-module cz.krat.knihovna {
+module cz.kratochvil.knihovna {
     requires javafx.controls;
     requires javafx.fxml;
 

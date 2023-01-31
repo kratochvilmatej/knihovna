@@ -6,10 +6,15 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -71,13 +76,16 @@ public class MainController {
     @FXML
     private AnchorPane pneMain;
 
+    @FXML
+    private VBox vbox;
+
     public String loggedUser;
 
     //-----------------------------Loadery
     public List<User> load() {
         List<User> users = null;
         try {
-            FileInputStream fileIn = new FileInputStream("data.dat");
+            FileInputStream fileIn = new FileInputStream("src/main/resources/cz/kratochvil/knihovna/data.dat");
             ObjectInputStream in = new ObjectInputStream(fileIn);
             users = (List<User>) in.readObject();
             in.close();
@@ -93,7 +101,7 @@ public class MainController {
     public List<Kniha> loadKnizky() {
         List<Kniha> knihy = null;
         try {
-            FileInputStream fileIn = new FileInputStream("knihy.dat");
+            FileInputStream fileIn = new FileInputStream("src/main/resources/cz/kratochvil/knihovna/knihy.dat");
             ObjectInputStream in = new ObjectInputStream(fileIn);
             knihy = (List<Kniha>) in.readObject();
             in.close();
@@ -107,14 +115,30 @@ public class MainController {
     }
 
     public void loadSeznam() {
+        for (Kniha kniha : loadKnizky()) {
 
+            HBox hbox = new HBox();
+            hbox.setSpacing(50);
+
+            Label label = new Label(kniha.getNazev() + " - " + kniha.getAutor() + " (" + kniha.getVydani() + ")");
+
+            Image obrazek = new Image(kniha.getObrazek());
+            ImageView image = new ImageView(obrazek);
+            image.setFitHeight(50);
+            image.setFitWidth(50);
+
+            kniha.check = new CheckBox();
+
+            hbox.getChildren().addAll(kniha.check, image, label);
+            vbox.getChildren().add(hbox);
+        }
     }
 
     //-----------------------------Checkery
     public boolean check(String regUser, String regPass) {
         List<User> users = load();
         for (User user : users) {
-            if (regUser.equals(user.username) && regPass.equals(user.password)) {
+            if (regUser.contains(user.username) && regPass.contains(user.password)) {
                 return true;
             }
         }
@@ -146,7 +170,7 @@ public class MainController {
             loggedUser = txUser.getText();
             prepniMain(e);
             lblLogged.setText(loggedUser);
-            loadKnizky();
+            loadSeznam();
         } else {
             lblStat.setTextFill(Color.rgb(255, 0, 0, 1));
             lblStat.setText("Nesprávné Uživatelské Jméno nebo Heslo");
@@ -161,10 +185,17 @@ public class MainController {
 
                         User user = new User(txUser.getText(), txPass.getText());
 
+                        List<User> reg = load();
+                        reg.add(user);
+
+
                         try {
-                            FileOutputStream fileOut = new FileOutputStream("data.dat");
+                            FileWriter writer = new FileWriter("src/main/resources/cz/kratochvil/knihovna/data.dat");
+                            writer.write("");
+                            writer.close();
+                            FileOutputStream fileOut = new FileOutputStream("src/main/resources/cz/kratochvil/knihovna/data.dat");
                             ObjectOutputStream out = new ObjectOutputStream(fileOut);
-                            out.writeObject(user);
+                            out.writeObject(reg);
                             out.close();
                             fileOut.close();
                         } catch (IOException i) {
@@ -259,35 +290,67 @@ public class MainController {
 
     //-----------------------------Pujcovani
     public void pujcit(ActionEvent e) {
-        if (necoVybrane()) {
-            for (Kniha kniha : loadKnizky()) {
-                if (kniha.check.isSelected()) {
-                    kniha.user = loggedUser;
-                }
+        List<Kniha> pujc = new ArrayList<>();
+        for (Kniha kniha : loadKnizky()) {
+            if (kniha.check.isSelected()) {
+                kniha.user = loggedUser;
+                pujc.add(kniha);
+            } else {
+                pujc.add(kniha);
             }
-            lblVypujceni.setTextFill(Color.rgb(0, 255, 0, 1));
-            lblVypujceni.setText("Vybrané knihy úspěšně vypůjčeny!");
-        } else {
+            try {
+                FileWriter writer = new FileWriter("src/main/resources/cz/kratochvil/knihovna/knihy.dat");
+                writer.write("");
+                writer.close();
+                FileOutputStream fileOut = new FileOutputStream("src/main/resources/cz/kratochvil/knihovna/knihy.dat");
+                ObjectOutputStream out = new ObjectOutputStream(fileOut);
+                out.writeObject(pujc);
+                out.close();
+                fileOut.close();
+            } catch (IOException i) {
+                i.printStackTrace();
+            }
+        }
+        if (!necoVybrane()) {
             lblVypujceni.setTextFill(Color.rgb(255, 0, 0, 1));
             lblVypujceni.setText("Vyberte knihy, které chcete vypůjčit!");
+        } else {
+            lblVypujceni.setTextFill(Color.rgb(0, 255, 0, 1));
+            lblVypujceni.setText("Vybrané knihy úspěšně vypůjčeny!");
         }
-
     }
 
     public void vratit(ActionEvent e) {
-        if (necoVybrane()) {
-            for (Kniha kniha : loadKnizky()) {
-                if (kniha.check.isSelected()) {
-                    kniha.user = "null";
-                    kniha.check.setSelected(false);
-                }
+        List<Kniha> vrat = new ArrayList<>();
+        for (Kniha kniha : loadKnizky()) {
+            if (kniha.check.isSelected()) {
+                kniha.user = "null";
+                kniha.check.setSelected(false);
+                vrat.add(kniha);
+            } else {
+                vrat.add(kniha);
             }
+        }
+        if (necoVybrane()) {
             lblVypujceni.setTextFill(Color.rgb(0, 255, 0, 1));
             lblVypujceni.setText("Knihy úspěšně vráceny!");
             vypniVraceni(e);
         } else {
             lblVypujceni.setTextFill(Color.rgb(255, 0, 0, 1));
             lblVypujceni.setText("Vyberte knihy, které chcete vrátit nebo se navraťte k vypůjčení!");
+        }
+
+        try {
+            FileWriter writer = new FileWriter("src/main/resources/cz/kratochvil/knihovna/knihy.dat");
+            writer.write("");
+            writer.close();
+            FileOutputStream fileOut = new FileOutputStream("src/main/resources/cz/kratochvil/knihovna/knihy.dat");
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(vrat);
+            out.close();
+            fileOut.close();
+        } catch (IOException i) {
+            i.printStackTrace();
         }
     }
 }

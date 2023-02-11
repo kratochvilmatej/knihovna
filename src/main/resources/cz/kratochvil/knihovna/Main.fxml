@@ -130,7 +130,63 @@
                     </font>
                 </Label>
                 <Button layoutX="991.0" layoutY="42.0" mnemonicParsing="false" onAction="#logOut" text="Odhlásit se" />
+            <Button fx:id="btnAdmin" layoutX="902.0" layoutY="42.0" mnemonicParsing="false" onAction="#prepniAdmin" text="Přidat Knihu" visible="false" />
             </children>
         </AnchorPane>
+      <AnchorPane fx:id="pneAdmin" layoutX="50.0" layoutY="126.0" prefHeight="520.0" prefWidth="799.0" visible="false">
+         <children>
+            <TextField fx:id="txNewNazev" layoutX="35.0" layoutY="68.0" prefHeight="25.0" prefWidth="210.0" />
+            <TextField fx:id="txNewAutor" layoutX="35.0" layoutY="118.0" prefHeight="25.0" prefWidth="210.0" />
+            <TextField fx:id="txNewVydani" layoutX="35.0" layoutY="168.0" prefHeight="25.0" prefWidth="210.0" />
+            <Label layoutX="35.0" layoutY="43.0" text="Zadejte Název knihy">
+               <font>
+                  <Font size="15.0" />
+               </font>
+            </Label>
+            <Label layoutX="35.0" layoutY="143.0" text="Zadejte Rok vydání knihy">
+               <font>
+                  <Font size="15.0" />
+               </font>
+            </Label>
+            <Label layoutX="35.0" layoutY="93.0" text="Zadejte Autora knihy">
+               <font>
+                  <Font size="15.0" />
+               </font>
+            </Label>
+            <TextField fx:id="txNewObrazek" layoutX="35.0" layoutY="218.0" prefHeight="25.0" prefWidth="210.0" />
+            <Label layoutX="35.0" layoutY="193.0" text="Zadejte odkaz na obrázek knihy">
+               <font>
+                  <Font size="15.0" />
+               </font>
+            </Label>
+            <Button fx:id="btnPridat" layoutX="35.0" layoutY="438.0" mnemonicParsing="false" onAction="#pridat" text="Přidat Knihu" />
+            <Button layoutX="131.0" layoutY="438.0" mnemonicParsing="false" onAction="#nahled" text="Náhled Knihy" />
+            <ImageView fx:id="imgNahled" fitHeight="100.0" fitWidth="100.0" layoutX="332.0" layoutY="50.0" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@neznama.png" />
+               </image>
+            </ImageView>
+            <Label fx:id="lblNahledNazev" layoutX="444.0" layoutY="50.0" text="Název Knihy">
+               <font>
+                  <Font name="System Bold" size="18.0" />
+               </font>
+            </Label>
+            <Label fx:id="lblNahledAutor" layoutX="444.0" layoutY="75.0" text="Autor Knihy">
+               <font>
+                  <Font size="15.0" />
+               </font>
+            </Label>
+            <Label fx:id="lblNahledVydani" layoutX="444.0" layoutY="96.0" text="Rok Vydání">
+               <font>
+                  <Font size="15.0" />
+               </font>
+            </Label>
+            <Label layoutX="24.0" layoutY="-1.0" text="Přidání nové knihy do Knihovny">
+               <font>
+                  <Font name="System Bold" size="20.0" />
+               </font>
+            </Label>
+         </children>
+      </AnchorPane>
     </children>
 </AnchorPane>

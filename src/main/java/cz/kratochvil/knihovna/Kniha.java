@@ -41,7 +41,6 @@ public class Kniha implements Serializable {
         this.vydani = vydani;
         this.obrazek = obrazek;
         this.user = user;
-        this.check = new CheckBox();
     }
 
     @Override

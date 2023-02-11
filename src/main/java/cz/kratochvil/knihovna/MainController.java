@@ -38,10 +38,31 @@ public class MainController {
     private Label lblVraceni;
 
     @FXML
+    private Label lblNahledNazev;
+
+    @FXML
+    private Label lblNahledAutor;
+
+    @FXML
+    private Label lblNahledVydani;
+
+    @FXML
     private TextField txUser;
 
     @FXML
     private TextField txPass;
+
+    @FXML
+    private TextField txNewNazev;
+
+    @FXML
+    private TextField txNewAutor;
+
+    @FXML
+    private TextField txNewVydani;
+
+    @FXML
+    private TextField txNewObrazek;
 
     @FXML
     private Button btnLogin;
@@ -68,6 +89,12 @@ public class MainController {
     private Button btnBackVypujceni;
 
     @FXML
+    private Button btnAdmin;
+
+    @FXML
+    private Button btnPridat;
+
+    @FXML
     private AnchorPane pneVyber;
 
     @FXML
@@ -77,9 +104,16 @@ public class MainController {
     private AnchorPane pneMain;
 
     @FXML
+    private AnchorPane pneAdmin;
+
+    @FXML
     private VBox vbox;
 
+    @FXML
+    private ImageView imgNahled;
+
     public String loggedUser;
+
 
     //-----------------------------Loadery
     public List<User> load() {
@@ -236,6 +270,9 @@ public class MainController {
         pneLogin.setVisible(false);
         pneMain.setVisible(true);
         pneVyber.setVisible(true);
+        if (loggedUser.contains("admin")) {
+            btnAdmin.setVisible(true);
+        }
     }
 
     public void prepniRegister(ActionEvent e) {
@@ -250,6 +287,7 @@ public class MainController {
     public void prepniLogin(ActionEvent e) {
         pneLogin.setVisible(true);
         pneMain.setVisible(false);
+        pneAdmin.setVisible(false);
         pneVyber.setVisible(false);
         btnLogin.setVisible(true);
         btnToReg.setVisible(true);
@@ -285,6 +323,18 @@ public class MainController {
         loadKnizky();
         if (lblVypujceni.getTextFill().toString().equals("0xff0000ff")) {
             lblVypujceni.setText("");
+        }
+    }
+
+    public void prepniAdmin(ActionEvent e) {
+        if (pneVyber.isVisible()) {
+            btnAdmin.setText("Zpět k výběru");
+            pneAdmin.setVisible(true);
+            pneVyber.setVisible(false);
+        } else {
+            btnAdmin.setText("Přidat Knihu");
+            pneAdmin.setVisible(false);
+            pneVyber.setVisible(true);
         }
     }
 
@@ -351,6 +401,68 @@ public class MainController {
             fileOut.close();
         } catch (IOException i) {
             i.printStackTrace();
+        }
+    }
+
+    //-----------------------------Admin
+    public void nahled(ActionEvent e) {
+        lblNahledAutor.setText(txNewAutor.getText());
+        lblNahledNazev.setText(txNewNazev.getText());
+        lblNahledVydani.setText(txNewVydani.getText());
+
+        if (!txNewObrazek.getText().isBlank() && txNewObrazek.getText().contains(".png") || txNewObrazek.getText().contains(".jpg") || txNewObrazek.getText().contains(".jpeg")) {
+            Image nahled = new Image(txNewObrazek.getText());
+
+            imgNahled.setImage(nahled);
+        }
+    }
+
+    public void pridat(ActionEvent e) {
+
+        List<Kniha> list = loadKnizky();
+
+        if (!txNewNazev.getText().isBlank() && !txNewAutor.getText().isBlank() && !txNewVydani.getText().isBlank()) {
+            String obrazek = "file:src/main/resources/cz/kratochvil/knihovna/neznama.png";
+            if (!txNewObrazek.getText().isBlank()) {
+                obrazek = txNewObrazek.getText();
+            }
+            Kniha nova = new Kniha(txNewNazev.getText(), txNewAutor.getText(), txNewVydani.getText(), obrazek, "null");
+
+            list.add(nova);
+
+            try {
+                FileWriter writer = new FileWriter("src/main/resources/cz/kratochvil/knihovna/knihy.dat");
+                writer.write("");
+                writer.close();
+                FileOutputStream fileOut = new FileOutputStream("src/main/resources/cz/kratochvil/knihovna/knihy.dat");
+                ObjectOutputStream out = new ObjectOutputStream(fileOut);
+                out.writeObject(list);
+                out.close();
+                fileOut.close();
+            } catch (IOException i) {
+                i.printStackTrace();
+            }
+
+            btnPridat.setStyle("-fx-background-color: #00FF00;");
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            }
+            btnPridat.setStyle("");
+
+            pneAdmin.setVisible(false);
+            pneVyber.setVisible(true);
+            loadSeznam();
+
+        } else {
+            btnPridat.setStyle("-fx-background-color: #ff0000;");
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            }
+            btnPridat.setStyle("");
         }
     }
 }

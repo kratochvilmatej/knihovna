@@ -451,8 +451,7 @@ public class MainController {
             }
             btnPridat.setStyle("");
 
-            pneAdmin.setVisible(false);
-            pneVyber.setVisible(true);
+            prepniAdmin(e);
             loadSeznam();
 
         } else {

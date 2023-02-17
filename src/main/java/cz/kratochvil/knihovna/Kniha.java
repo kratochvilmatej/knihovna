@@ -11,7 +11,7 @@ public class Kniha implements Serializable {
     String vydani;
     String obrazek;
     String user;
-    CheckBox check;
+    Boolean checked;
 
 
     public String getNazev() {
@@ -34,13 +34,13 @@ public class Kniha implements Serializable {
         return user;
     }
 
-
-    public Kniha(String nazev, String autor, String vydani, String obrazek, String user) {
+    public Kniha(String nazev, String autor, String vydani, String obrazek, String user, Boolean checked) {
         this.nazev = nazev;
         this.autor = autor;
         this.vydani = vydani;
         this.obrazek = obrazek;
         this.user = user;
+        this.checked = checked;
     }
 
     @Override

@@ -1,5 +1,6 @@
 package cz.kratochvil.knihovna;
 
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -116,6 +117,7 @@ public class MainController {
 
 
     //-----------------------------Loadery
+
     public List<User> load() {
         List<User> users = null;
         try {
@@ -148,7 +150,12 @@ public class MainController {
         return knihy;
     }
 
-    public void loadSeznam() {
+    public void loadSeznam(Boolean d) {
+
+        List<Kniha> list = new ArrayList<>();
+
+        final boolean[] novy = {false};
+
         for (Kniha kniha : loadKnizky()) {
 
             HBox hbox = new HBox();
@@ -161,10 +168,41 @@ public class MainController {
             image.setFitHeight(50);
             image.setFitWidth(50);
 
-            kniha.check = new CheckBox();
+            CheckBox check = new CheckBox();
 
-            hbox.getChildren().addAll(kniha.check, image, label);
+            check.selectedProperty().addListener((ObservableValue<? extends Boolean> ov, Boolean old_val, Boolean new_val) ->{
+                kniha.checked = check.isSelected();
+                list.add(kniha);
+
+                novy[0] = true;
+            });
+
+            if(d=false) {
+                check.setDisable(true);
+
+                if(loggedUser.equals(kniha.getUser())) {
+                    check.setDisable(false);
+                }
+            }
+
+            list.add(kniha);
+
+            hbox.getChildren().addAll(check, image, label);
             vbox.getChildren().add(hbox);
+        }
+        if(novy[0]) {
+            try {
+                FileWriter writer = new FileWriter("src/main/resources/cz/kratochvil/knihovna/knihy.dat");
+                writer.write("");
+                writer.close();
+                FileOutputStream fileOut = new FileOutputStream("src/main/resources/cz/kratochvil/knihovna/knihy.dat");
+                ObjectOutputStream out = new ObjectOutputStream(fileOut);
+                out.writeObject(list);
+                out.close();
+                fileOut.close();
+            } catch (IOException i) {
+                i.printStackTrace();
+            }
         }
     }
 
@@ -191,7 +229,7 @@ public class MainController {
 
     public boolean necoVybrane() {
         for (Kniha kniha : loadKnizky()) {
-            if (kniha.check.isSelected()) {
+            if (kniha.checked) {
                 return true;
             }
         }
@@ -204,7 +242,7 @@ public class MainController {
             loggedUser = txUser.getText();
             prepniMain(e);
             lblLogged.setText(loggedUser);
-            loadSeznam();
+            loadSeznam(false);
         } else {
             lblStat.setTextFill(Color.rgb(255, 0, 0, 1));
             lblStat.setText("Nesprávné Uživatelské Jméno nebo Heslo");
@@ -300,12 +338,9 @@ public class MainController {
     }
 
     public void prepniVraceni(ActionEvent e) {
-        for (Kniha kniha : loadKnizky()) {
-            kniha.check.setDisable(true);
-            if (kniha.getUser().equals(loggedUser)) {
-                kniha.check.setDisable(false);
-            }
-        }
+        vbox.getChildren().clear();
+        loadSeznam(true);
+
         lblVypujceni.setText("");
         lblVraceni.setVisible(true);
         btnNaVraceni.setVisible(true);
@@ -320,7 +355,10 @@ public class MainController {
         lblVraceni.setVisible(false);
         btnPujcit.setVisible(true);
         btnVraceni.setVisible(true);
-        loadKnizky();
+
+        vbox.getChildren().clear();
+        loadSeznam(false);
+
         if (lblVypujceni.getTextFill().toString().equals("0xff0000ff")) {
             lblVypujceni.setText("");
         }
@@ -340,13 +378,23 @@ public class MainController {
 
     //-----------------------------Pujcovani
     public void pujcit(ActionEvent e) {
+
         List<Kniha> pujc = new ArrayList<>();
+
+
+
+        for( Kniha kniha : loadKnizky()) {
+            System.out.println(kniha.checked + " " + kniha.vydani);
+        }
+
         for (Kniha kniha : loadKnizky()) {
-            if (kniha.check.isSelected()) {
+            if (kniha.checked=true && kniha.user.equals("null")) {
                 kniha.user = loggedUser;
                 pujc.add(kniha);
+                System.out.println("je checkla" + kniha.vydani);
             } else {
                 pujc.add(kniha);
+                System.out.println("neni checkla" + kniha.vydani);
             }
             try {
                 FileWriter writer = new FileWriter("src/main/resources/cz/kratochvil/knihovna/knihy.dat");
@@ -372,15 +420,16 @@ public class MainController {
 
     public void vratit(ActionEvent e) {
         List<Kniha> vrat = new ArrayList<>();
-        for (Kniha kniha : loadKnizky()) {
-            if (kniha.check.isSelected()) {
+
+        for(Kniha kniha : loadKnizky()) {
+            if(kniha.checked) {
                 kniha.user = "null";
-                kniha.check.setSelected(false);
                 vrat.add(kniha);
             } else {
                 vrat.add(kniha);
             }
         }
+
         if (necoVybrane()) {
             lblVypujceni.setTextFill(Color.rgb(0, 255, 0, 1));
             lblVypujceni.setText("Knihy úspěšně vráceny!");
@@ -426,7 +475,7 @@ public class MainController {
             if (!txNewObrazek.getText().isBlank()) {
                 obrazek = txNewObrazek.getText();
             }
-            Kniha nova = new Kniha(txNewNazev.getText(), txNewAutor.getText(), txNewVydani.getText(), obrazek, "null");
+            Kniha nova = new Kniha(txNewNazev.getText(), txNewAutor.getText(), txNewVydani.getText(), obrazek, "null", false);
 
             list.add(nova);
 
@@ -451,9 +500,11 @@ public class MainController {
             }
             btnPridat.setStyle("");
 
-            pneAdmin.setVisible(false);
-            pneVyber.setVisible(true);
-            loadSeznam();
+            prepniAdmin(e);
+
+            vbox.getChildren().clear();
+
+            loadSeznam(false);
 
         } else {
             btnPridat.setStyle("-fx-background-color: #ff0000;");
@@ -465,4 +516,5 @@ public class MainController {
             btnPridat.setStyle("");
         }
     }
+
 }

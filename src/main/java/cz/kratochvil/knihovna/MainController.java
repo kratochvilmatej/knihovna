@@ -1,5 +1,6 @@
 package cz.kratochvil.knihovna;
 
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -148,7 +149,7 @@ public class MainController {
         return knihy;
     }
 
-    public void loadSeznam() {
+    public void loadSeznam(int x) {
         for (Kniha kniha : loadKnizky()) {
 
             HBox hbox = new HBox();
@@ -161,9 +162,38 @@ public class MainController {
             image.setFitHeight(50);
             image.setFitWidth(50);
 
-            kniha.check = new CheckBox();
+            CheckBox check = new CheckBox();
+            if(x==0) { //Default
+                if(!kniha.user.equals("null")) {
+                    check.setDisable(true);
+                }
+            } else if(x==1) { //Vraceni
+                check.setDisable(true);
+                if(kniha.user.equals(loggedUser)) {
+                    check.setDisable(false);
+                }
+            }
 
-            hbox.getChildren().addAll(kniha.check, image, label);
+            check.selectedProperty().addListener(
+                    (ObservableValue<? extends Boolean> ov, Boolean old_val, Boolean new_val) -> {
+
+                        List<Kniha> list = new ArrayList<>();
+
+                        kniha.checked = check.isSelected();
+                        list.add(kniha);
+
+                        try {
+                            FileOutputStream fileOut = new FileOutputStream("src/main/resources/cz/kratochvil/knihovna/knihy.dat");
+                            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+                            out.writeObject(list);
+                            out.close();
+                            fileOut.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    });
+
+            hbox.getChildren().addAll(check, image, label);
             vbox.getChildren().add(hbox);
         }
     }
@@ -191,7 +221,7 @@ public class MainController {
 
     public boolean necoVybrane() {
         for (Kniha kniha : loadKnizky()) {
-            if (kniha.check.isSelected()) {
+            if (kniha.checked=true) {
                 return true;
             }
         }
@@ -204,7 +234,7 @@ public class MainController {
             loggedUser = txUser.getText();
             prepniMain(e);
             lblLogged.setText(loggedUser);
-            loadSeznam();
+            loadSeznam(0);
         } else {
             lblStat.setTextFill(Color.rgb(255, 0, 0, 1));
             lblStat.setText("Nesprávné Uživatelské Jméno nebo Heslo");
@@ -300,12 +330,9 @@ public class MainController {
     }
 
     public void prepniVraceni(ActionEvent e) {
-        for (Kniha kniha : loadKnizky()) {
-            kniha.check.setDisable(true);
-            if (kniha.getUser().equals(loggedUser)) {
-                kniha.check.setDisable(false);
-            }
-        }
+
+        loadSeznam(1);
+
         lblVypujceni.setText("");
         lblVraceni.setVisible(true);
         btnNaVraceni.setVisible(true);
@@ -320,7 +347,10 @@ public class MainController {
         lblVraceni.setVisible(false);
         btnPujcit.setVisible(true);
         btnVraceni.setVisible(true);
-        loadKnizky();
+
+        vbox.getChildren().clear();
+        loadSeznam(0);
+
         if (lblVypujceni.getTextFill().toString().equals("0xff0000ff")) {
             lblVypujceni.setText("");
         }
@@ -342,7 +372,7 @@ public class MainController {
     public void pujcit(ActionEvent e) {
         List<Kniha> pujc = new ArrayList<>();
         for (Kniha kniha : loadKnizky()) {
-            if (kniha.check.isSelected()) {
+            if (kniha.checked=true) {
                 kniha.user = loggedUser;
                 pujc.add(kniha);
             } else {
@@ -373,9 +403,8 @@ public class MainController {
     public void vratit(ActionEvent e) {
         List<Kniha> vrat = new ArrayList<>();
         for (Kniha kniha : loadKnizky()) {
-            if (kniha.check.isSelected()) {
+            if (kniha.checked=true) {
                 kniha.user = "null";
-                kniha.check.setSelected(false);
                 vrat.add(kniha);
             } else {
                 vrat.add(kniha);
@@ -384,6 +413,10 @@ public class MainController {
         if (necoVybrane()) {
             lblVypujceni.setTextFill(Color.rgb(0, 255, 0, 1));
             lblVypujceni.setText("Knihy úspěšně vráceny!");
+
+            vbox.getChildren().clear();
+            loadSeznam(0);
+
             vypniVraceni(e);
         } else {
             lblVypujceni.setTextFill(Color.rgb(255, 0, 0, 1));
@@ -426,7 +459,7 @@ public class MainController {
             if (!txNewObrazek.getText().isBlank()) {
                 obrazek = txNewObrazek.getText();
             }
-            Kniha nova = new Kniha(txNewNazev.getText(), txNewAutor.getText(), txNewVydani.getText(), obrazek, "null");
+            Kniha nova = new Kniha(txNewNazev.getText(), txNewAutor.getText(), txNewVydani.getText(), obrazek, "null", false);
 
             list.add(nova);
 
@@ -453,7 +486,9 @@ public class MainController {
 
             pneAdmin.setVisible(false);
             pneVyber.setVisible(true);
-            loadSeznam();
+
+            vbox.getChildren().clear();
+            loadSeznam(0);
 
         } else {
             btnPridat.setStyle("-fx-background-color: #ff0000;");

@@ -150,6 +150,7 @@ public class MainController {
     }
 
     public void loadSeznam(int x) {
+        vbox.getChildren().clear();
         for (Kniha kniha : loadKnizky()) {
 
             HBox hbox = new HBox();
@@ -348,7 +349,6 @@ public class MainController {
         btnPujcit.setVisible(true);
         btnVraceni.setVisible(true);
 
-        vbox.getChildren().clear();
         loadSeznam(0);
 
         if (lblVypujceni.getTextFill().toString().equals("0xff0000ff")) {
@@ -414,7 +414,6 @@ public class MainController {
             lblVypujceni.setTextFill(Color.rgb(0, 255, 0, 1));
             lblVypujceni.setText("Knihy úspěšně vráceny!");
 
-            vbox.getChildren().clear();
             loadSeznam(0);
 
             vypniVraceni(e);
@@ -487,7 +486,6 @@ public class MainController {
             pneAdmin.setVisible(false);
             pneVyber.setVisible(true);
 
-            vbox.getChildren().clear();
             loadSeznam(0);
 
         } else {

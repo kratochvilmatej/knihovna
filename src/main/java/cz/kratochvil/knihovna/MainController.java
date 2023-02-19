@@ -150,7 +150,9 @@ public class MainController {
     }
 
     public void loadSeznam(int x) {
+
         vbox.getChildren().clear();
+
         for (Kniha kniha : loadKnizky()) {
 
             HBox hbox = new HBox();
@@ -173,6 +175,13 @@ public class MainController {
                 if(kniha.user.equals(loggedUser)) {
                     check.setDisable(false);
                 }
+            } else {
+                if(kniha.checked) {
+                    check.setSelected(true);
+                }
+                if(!kniha.user.equals("null")) {
+                    check.setDisable(true);
+                }
             }
 
             check.selectedProperty().addListener(
@@ -180,7 +189,13 @@ public class MainController {
 
                         List<Kniha> list = new ArrayList<>();
 
+                        for(Kniha kniga:loadKnizky()) {
+                            list.add(kniga);
+                        }
+
                         kniha.checked = check.isSelected();
+
+                        System.out.println(kniha.checked);
                         list.add(kniha);
 
                         try {
@@ -192,6 +207,7 @@ public class MainController {
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
+                        loadSeznam(2);
                     });
 
             hbox.getChildren().addAll(check, image, label);

@@ -27,6 +27,7 @@ public class Main extends Application {
     public static void main(String[] args) {
         launch();
 
+
         List<Kniha> users = new ArrayList<>();
 
         String jednaf = "file:src/main/resources/cz/kratochvil/knihovna/jedna.png";

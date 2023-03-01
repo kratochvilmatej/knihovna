@@ -66,6 +66,9 @@ public class MainController {
     private TextField txNewObrazek;
 
     @FXML
+    private TextField txSearch;
+
+    @FXML
     private Button btnLogin;
 
     @FXML
@@ -149,11 +152,13 @@ public class MainController {
         return knihy;
     }
 
-    public void loadSeznam(int x) {
+    public void loadSeznam(int x, List<Kniha> knihy) {
 
         vbox.getChildren().clear();
 
-        for (Kniha kniha : loadKnizky()) {
+        List<Kniha> seznam = new ArrayList<>();
+
+        for (Kniha kniha : knihy) {
 
             HBox hbox = new HBox();
             hbox.setSpacing(50);
@@ -175,13 +180,24 @@ public class MainController {
                 if(kniha.user.equals(loggedUser)) {
                     check.setDisable(false);
                 }
-            } else {
+            } else if(x==2) {
                 if(kniha.checked) {
                     check.setSelected(true);
                 }
                 if(!kniha.user.equals("null")) {
                     check.setDisable(true);
                 }
+            } else {
+                if(check.isSelected()) {
+                    check.setSelected(false);
+                }
+            }
+
+            if(kniha.checked=true) {
+                kniha.checked=false;
+                seznam.add(kniha);
+            } else {
+                seznam.add(kniha);
             }
 
             check.selectedProperty().addListener(
@@ -189,14 +205,19 @@ public class MainController {
 
                         List<Kniha> list = new ArrayList<>();
 
-                        for(Kniha kniga:loadKnizky()) {
-                            list.add(kniga);
-                        }
-
                         kniha.checked = check.isSelected();
 
-                        System.out.println(kniha.checked);
-                        list.add(kniha);
+
+                        Boolean did = false;
+
+                        for(Kniha kniga:loadKnizky()) {
+                            if (!did && kniha.getNazev().equals(kniga.getNazev())) {
+                                list.add(kniha);
+                                did=true;
+                            } else {
+                                list.add(kniga);
+                            }
+                        }
 
                         try {
                             FileOutputStream fileOut = new FileOutputStream("src/main/resources/cz/kratochvil/knihovna/knihy.dat");
@@ -207,12 +228,40 @@ public class MainController {
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-                        loadSeznam(2);
+                        loadSeznam(2, list);
+                        System.out.println("naloadeno");
                     });
 
             hbox.getChildren().addAll(check, image, label);
             vbox.getChildren().add(hbox);
+
+            try {
+                FileOutputStream fileOut = new FileOutputStream("src/main/resources/cz/kratochvil/knihovna/knihy.dat");
+                ObjectOutputStream out = new ObjectOutputStream(fileOut);
+                out.writeObject(seznam);
+                out.close();
+                fileOut.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
+    }
+
+    public void initialize() {
+
+        List<Kniha> knihy = new ArrayList<>();
+        knihy.clear();
+
+        vbox.getChildren().clear();
+
+        txSearch.textProperty().addListener((ObservableValue<? extends String> ov, String old_val, String new_val) -> {
+            for(Kniha kniha:loadKnizky()) {
+                if (kniha.getNazev().toLowerCase().contains(new_val) || kniha.getAutor().toLowerCase().contains(new_val)) {
+                    knihy.add(kniha);
+                }
+            }
+            loadSeznam(0, knihy);
+        });
     }
 
     //-----------------------------Checkery
@@ -251,7 +300,7 @@ public class MainController {
             loggedUser = txUser.getText();
             prepniMain(e);
             lblLogged.setText(loggedUser);
-            loadSeznam(0);
+            loadSeznam(0, loadKnizky());
         } else {
             lblStat.setTextFill(Color.rgb(255, 0, 0, 1));
             lblStat.setText("Nesprávné Uživatelské Jméno nebo Heslo");
@@ -348,7 +397,7 @@ public class MainController {
 
     public void prepniVraceni(ActionEvent e) {
 
-        loadSeznam(1);
+        loadSeznam(1, loadKnizky());
 
         lblVypujceni.setText("");
         lblVraceni.setVisible(true);
@@ -365,7 +414,7 @@ public class MainController {
         btnPujcit.setVisible(true);
         btnVraceni.setVisible(true);
 
-        loadSeznam(0);
+        loadSeznam(0, loadKnizky());
 
         if (lblVypujceni.getTextFill().toString().equals("0xff0000ff")) {
             lblVypujceni.setText("");
@@ -386,11 +435,14 @@ public class MainController {
 
     //-----------------------------Pujcovani
     public void pujcit(ActionEvent e) {
+
         List<Kniha> pujc = new ArrayList<>();
+
         for (Kniha kniha : loadKnizky()) {
             if (kniha.checked=true) {
                 kniha.user = loggedUser;
                 pujc.add(kniha);
+                System.out.println("pujceno " + kniha.getVydani());
             } else {
                 pujc.add(kniha);
             }
@@ -414,6 +466,7 @@ public class MainController {
             lblVypujceni.setTextFill(Color.rgb(0, 255, 0, 1));
             lblVypujceni.setText("Vybrané knihy úspěšně vypůjčeny!");
         }
+        loadSeznam(3, loadKnizky());
     }
 
     public void vratit(ActionEvent e) {
@@ -430,7 +483,7 @@ public class MainController {
             lblVypujceni.setTextFill(Color.rgb(0, 255, 0, 1));
             lblVypujceni.setText("Knihy úspěšně vráceny!");
 
-            loadSeznam(0);
+            loadSeznam(0, loadKnizky());
 
             vypniVraceni(e);
         } else {
@@ -502,7 +555,7 @@ public class MainController {
             pneAdmin.setVisible(false);
             pneVyber.setVisible(true);
 
-            loadSeznam(0);
+            loadSeznam(0, loadKnizky());
 
         } else {
             btnPridat.setStyle("-fx-background-color: #ff0000;");

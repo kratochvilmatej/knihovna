@@ -131,6 +131,7 @@
                 </Label>
                 <Button layoutX="991.0" layoutY="42.0" mnemonicParsing="false" onAction="#logOut" text="Odhlásit se" />
             <Button fx:id="btnAdmin" layoutX="902.0" layoutY="42.0" mnemonicParsing="false" onAction="#prepniAdmin" text="Přidat Knihu" visible="false" />
+            <TextField fx:id="txSearch" layoutX="73.0" layoutY="80.0" prefHeight="25.0" prefWidth="215.0" promptText="Vyhledávání" />
             </children>
         </AnchorPane>
       <AnchorPane fx:id="pneAdmin" layoutX="50.0" layoutY="126.0" prefHeight="520.0" prefWidth="799.0" visible="false">

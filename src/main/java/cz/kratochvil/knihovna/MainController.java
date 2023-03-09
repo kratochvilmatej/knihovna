@@ -205,15 +205,20 @@ public class MainController {
 
                         List<Kniha> list = new ArrayList<>();
 
-                        kniha.checked = check.isSelected();
+                        System.out.println(kniha.getNazev());
+                        System.out.println(check.isSelected());
 
+                        Kniha nova = new Kniha(kniha.getNazev(), kniha.getAutor(), kniha.getVydani(), kniha.getObrazek(), kniha.getUser(), check.isSelected());
+
+                        kniha.checked = check.isSelected();
 
                         Boolean did = false;
 
                         for(Kniha kniga:loadKnizky()) {
                             if (!did && kniha.getNazev().equals(kniga.getNazev())) {
-                                list.add(kniha);
+                                list.add(nova);
                                 did=true;
+                                System.out.println("pridano");
                             } else {
                                 list.add(kniga);
                             }
@@ -229,7 +234,8 @@ public class MainController {
                             e.printStackTrace();
                         }
                         loadSeznam(2, list);
-                        System.out.println("naloadeno");
+
+                        System.out.println(nova.checked);
                     });
 
             hbox.getChildren().addAll(check, image, label);

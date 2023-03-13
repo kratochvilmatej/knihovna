@@ -3,10 +3,8 @@ package cz.kratochvil.knihovna;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
+import javafx.geometry.Pos;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
@@ -16,7 +14,6 @@ import javafx.scene.paint.Color;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 
@@ -111,6 +108,9 @@ public class MainController {
     private AnchorPane pneAdmin;
 
     @FXML
+    private ScrollPane pneScroll;
+
+    @FXML
     private VBox vbox;
 
     @FXML
@@ -139,8 +139,6 @@ public class MainController {
 
     public List<Kniha> loadKnizky() {
 
-        List<Kniha> knihy = null;
-
         try {
             FileInputStream fileIn = new FileInputStream("src/main/resources/cz/kratochvil/knihovna/knihy.dat");
             ObjectInputStream in = new ObjectInputStream(fileIn);
@@ -159,9 +157,11 @@ public class MainController {
 
         vbox.getChildren().clear();
 
-        for (Kniha kniha : kniz) {
+        List<Kniha> tem = new ArrayList<>();
 
-            System.out.println("1");
+        int pos = 0;
+
+        for (Kniha kniha : kniz) {
 
             HBox hbox = new HBox();
             hbox.setSpacing(50);
@@ -174,79 +174,70 @@ public class MainController {
             image.setFitWidth(50);
 
             CheckBox check = new CheckBox();
-            if(x==0) { //Default
-                if(!kniha.user.equals("null")) {
-                    check.setDisable(true);
-                }
-            } else if(x==1) { //Vraceni
+
+
+            if (!kniha.user.equals("null")) {
                 check.setDisable(true);
-                if(kniha.user.equals(loggedUser)) {
+            }
+            if (x == 1) { //Vraceni
+                check.setDisable(true);
+                if (kniha.user.equals(loggedUser)) {
                     check.setDisable(false);
                 }
-            } else if(x==2) {
-                if(kniha.checked) {
+            } else if (x == 2) {
+                if (kniha.checked) {
                     check.setSelected(true);
                 }
-                if(!kniha.user.equals("null")) {
+                if (!kniha.user.equals("null")) {
                     check.setDisable(true);
                 }
             } else {
-                if(check.isSelected()) {
+                if (check.isSelected()) {
                     check.setSelected(false);
                 }
             }
 
-//            if(kniha.checked=true) {
-//                kniha.checked=false;
-//                seznam.add(kniha);
-//            } else {
-//                seznam.add(kniha);
-//            }
-
-
             check.selectedProperty().addListener(
                     (ObservableValue<? extends Boolean> ov, Boolean old_val, Boolean new_val) -> {
 
-                        kniha.checked = check.isSelected();
-                        System.out.println(kniha.checked);
+                        int index = knihy.indexOf(kniha);
 
-                        int knih = 0;
+                        Kniha nova = new Kniha(kniha.getNazev(), kniha.getAutor(), kniha.getVydani(), kniha.getObrazek(), kniha.getUser(), new_val);
 
-                        System.out.println(knihy);
+                        knihy.set(index, nova);
 
-                        for(Kniha kniga:knihy) {
-                            if (kniha.getNazev().equals(kniga.getNazev())) {
-                                knihy.remove(knih);
-                                knihy.add(kniha);
-                                knih=knih+1;
-                            }
-                        }
-
-                        loadSeznam(2, knihy);
-                        System.out.println("naloadeno");
                     });
 
             hbox.getChildren().addAll(check, image, label);
             vbox.getChildren().add(hbox);
 
+            pneScroll.setContent(vbox);
+            pneScroll.setFitToHeight(true);
+            vbox.setAlignment(Pos.CENTER);
 
+            try {
+                FileOutputStream fileOut = new FileOutputStream("src/main/resources/cz/kratochvil/knihovna/knihy.dat");
+                ObjectOutputStream out = new ObjectOutputStream(fileOut);
+                out.writeObject(knihy);
+                out.close();
+                fileOut.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
-    }
-
-    public void initialize() {
-
-        List<Kniha> knizo = new ArrayList<>();
-
-        vbox.getChildren().clear();
 
         txSearch.textProperty().addListener((ObservableValue<? extends String> ov, String old_val, String new_val) -> {
-            for(Kniha kniha:knihy) {
-                if (kniha.getNazev().toLowerCase().contains(new_val) || kniha.getAutor().toLowerCase().contains(new_val)) {
-                    knizo.add(kniha);
+
+            List<Kniha> temp = new ArrayList<>();
+
+            for (Kniha kniha : knihy) {
+                if (kniha.getNazev().toLowerCase().contains(new_val.toLowerCase()) || kniha.getAutor().toLowerCase().contains(new_val.toLowerCase())) {
+                    temp.add(kniha);
                 }
             }
-            loadSeznam(0, knizo);
+            loadSeznam(0, temp);
         });
+
     }
 
     //-----------------------------Checkery
@@ -272,7 +263,7 @@ public class MainController {
 
     public boolean necoVybrane() {
         for (Kniha kniha : knihy) {
-            if (kniha.checked=true) {
+            if (kniha.checked) {
                 return true;
             }
         }
@@ -313,9 +304,7 @@ public class MainController {
                             FileOutputStream fileOut = new FileOutputStream("src/main/resources/cz/kratochvil/knihovna/data.dat");
                             ObjectOutputStream out = new ObjectOutputStream(fileOut);
                             out.writeObject(reg);
-                            out.flush();
                             out.close();
-                            fileOut.flush();
                             fileOut.close();
                         } catch (IOException i) {
                             i.printStackTrace();
@@ -425,28 +414,36 @@ public class MainController {
     //-----------------------------Pujcovani
     public void pujcit(ActionEvent e) {
 
-        int x = 0;
-
-        System.out.println(knihy);
-
-        for (Kniha kniha : knihy) {
-            if (kniha.checked) {
-                kniha.user = loggedUser;
-                knihy.remove(x);
-                knihy.add(kniha);
-                System.out.println("pujceno " + kniha.getVydani());
-                x=x+1;
-            } else {
-                knihy.remove(x);
-                knihy.add(kniha);
-                x=x+1;
-            }
-
-        }
         if (!necoVybrane()) {
             lblVypujceni.setTextFill(Color.rgb(255, 0, 0, 1));
             lblVypujceni.setText("Vyberte knihy, které chcete vypůjčit!");
         } else {
+
+            int pos = 0;
+
+            List<Kniha> temp = new ArrayList<>();
+
+            for (Kniha kniha1 : knihy) {
+                temp.add(kniha1);
+            }
+
+            for (Kniha kniha : knihy) {
+                if (kniha.checked) {
+                    kniha.user = loggedUser;
+
+                    temp.remove(kniha);
+                    temp.add(pos, kniha);
+
+                }
+                pos++;
+            }
+
+            knihy.clear();
+
+            for (Kniha kniha1 : temp) {
+                knihy.add(kniha1);
+            }
+
             lblVypujceni.setTextFill(Color.rgb(0, 255, 0, 1));
             lblVypujceni.setText("Vybrané knihy úspěšně vypůjčeny!");
         }
@@ -455,21 +452,36 @@ public class MainController {
 
     public void vratit(ActionEvent e) {
 
-        int x = 0;
-
-        for (Kniha kniha : knihy) {
-            if (kniha.checked=true) {
-                kniha.user = "null";
-                knihy.remove(x);
-                knihy.add(kniha);
-                x=x+1;
-            } else {
-                knihy.remove(x);
-                knihy.add(kniha);
-                x=x+1;
-            }
-        }
         if (necoVybrane()) {
+
+            int pos = 0;
+
+            List<Kniha> temp = new ArrayList<>();
+
+            for (Kniha kniha1 : knihy) {
+                temp.add(kniha1);
+            }
+
+            for (Kniha kniha : knihy) {
+                if (kniha.checked) {
+
+                    kniha.checked = false;
+
+                    kniha.user = "null";
+
+                    temp.remove(kniha);
+                    temp.add(pos, kniha);
+
+                }
+                pos++;
+            }
+
+            knihy.clear();
+
+            for (Kniha kniha1 : temp) {
+                knihy.add(kniha1);
+            }
+
             lblVypujceni.setTextFill(Color.rgb(0, 255, 0, 1));
             lblVypujceni.setText("Knihy úspěšně vráceny!");
 
@@ -496,7 +508,6 @@ public class MainController {
     }
 
     public void pridat(ActionEvent e) {
-
 
         if (!txNewNazev.getText().isBlank() && !txNewAutor.getText().isBlank() && !txNewVydani.getText().isBlank()) {
             String obrazek = "file:src/main/resources/cz/kratochvil/knihovna/neznama.png";

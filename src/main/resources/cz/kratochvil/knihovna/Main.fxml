@@ -20,11 +20,6 @@
                         <Font size="15.0" />
                     </font>
                 </Button>
-                <Label fx:id="lblVypujceni" alignment="TOP_LEFT" layoutX="579.0" layoutY="21.0" prefHeight="110.0" prefWidth="173.0" textFill="LIME" wrapText="true">
-                    <font>
-                        <Font size="15.0" />
-                    </font>
-                </Label>
                 <Button fx:id="btnVraceni" layoutX="758.0" layoutY="53.0" mnemonicParsing="false" onAction="#prepniVraceni" prefHeight="25.0" prefWidth="173.0" text="Vrácení Knih">
                     <font>
                         <Font size="15.0" />
@@ -45,11 +40,16 @@
                         <Font size="15.0" />
                     </font>
                 </Button>
-            <ScrollPane prefHeight="520.0" prefWidth="745.0">
+            <Label fx:id="lblVypujceni" layoutX="758.0" layoutY="98.0" prefHeight="81.0" prefWidth="173.0" textFill="LIME" wrapText="true">
+               <font>
+                  <Font size="15.0" />
+               </font>
+            </Label>
+            <ScrollPane fx:id="pneScroll" prefHeight="520.0" prefWidth="745.0">
               <content>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="518.0" prefWidth="748.0">
                      <children>
-                        <VBox fx:id="vbox" layoutX="13.0" layoutY="9.0" prefHeight="505.0" prefWidth="732.0" />
+                        <VBox fx:id="vbox" layoutY="-6.0" prefHeight="520.0" prefWidth="745.0" />
                      </children>
                   </AnchorPane>
               </content>
